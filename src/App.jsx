@@ -1,4 +1,4 @@
-// Folymarket – Scenario Engine v2.6 Patch: Default pressure ON, slider helper text, and 0-pressure fallback logic
+// Folymarket – Scenario Engine v2.7: Split control buttons, color-coded pressure slider, and intuitive pressure input design
 import React, { useState } from "react";
 
 export default function Folymarket() {
@@ -31,7 +31,7 @@ export default function Folymarket() {
 
   const addVariable = (sIndex) => {
     const updated = [...scenarios];
-    updated[sIndex].variables.push({ label: "New Variable", value: 100, hasPressure: true });
+    updated[sIndex].variables.push({ label: "New Variable", value: 70, hasPressure: true });
     setScenarios(updated);
   };
 
@@ -104,10 +104,10 @@ export default function Folymarket() {
                       max="100"
                       value={v.value}
                       onChange={(e) => updateVariable(sIndex, vIndex, "value", e.target.value)}
-                      className="w-full accent-teal-500"
+                      className={`w-full accent-teal-500 ${v.value >= 66 ? 'bg-orange-300' : v.value <= 33 ? 'bg-teal-300' : 'bg-yellow-200'}`}
                     />
                     <div className="text-sm text-orange-700 mt-1">Pressure: {v.value}%</div>
-                    <p className="text-xs text-gray-500">Use the slider to increase or decrease this variable’s influence on the outcome.</p>
+                    <p className="text-xs text-gray-500">Use the slider to increase or decrease this variable’s influence on the outcome. Left is cooler (lower pressure), right is hotter (higher pressure).</p>
                   </>
                 )}
               </div>
@@ -122,10 +122,14 @@ export default function Folymarket() {
         </div>
       ))}
 
-      <div className="flex gap-4 mb-10">
-        <button onClick={addScenario} className="bg-orange-600 hover:bg-orange-700 text-white px-5 py-3 rounded-xl text-lg">+ Add Scenario</button>
-        <button onClick={generateOdds} className="bg-teal-600 hover:bg-teal-700 text-white px-5 py-3 rounded-xl text-lg">Generate Outcomes</button>
-        <button onClick={clearAll} className="bg-gray-500 hover:bg-gray-600 text-white px-5 py-3 rounded-xl text-lg">Clear All</button>
+      <div className="flex flex-wrap gap-4 mb-10">
+        <div className="flex gap-4">
+          <button onClick={addScenario} className="bg-orange-600 hover:bg-orange-700 text-white px-5 py-3 rounded-xl text-lg">+ Add Scenario</button>
+          <button onClick={generateOdds} className="bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-xl text-lg">Generate Outcomes</button>
+        </div>
+        <div className="mt-4">
+          <button onClick={clearAll} className="bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-xl text-lg">Clear All</button>
+        </div>
       </div>
 
       <div className="space-y-6">
