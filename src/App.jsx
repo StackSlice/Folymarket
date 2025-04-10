@@ -1,6 +1,4 @@
-// Folymarket – Upgraded Scenario Engine UI with dynamic variables, sliders, and improved styling
-// Theme: Orange + Teal, bold typography, scalable layout for strategic modeling
-
+// Folymarket – Scenario Engine v2.5 with optional pressure sliders, variable type selection, and Clear All functionality
 import React, { useState } from "react";
 
 export default function Folymarket() {
@@ -26,9 +24,14 @@ export default function Folymarket() {
     ]);
   };
 
+  const clearAll = () => {
+    setScenarios([{ title: "", variables: [] }]);
+    setResults([]);
+  };
+
   const addVariable = (sIndex) => {
     const updated = [...scenarios];
-    updated[sIndex].variables.push({ label: "New Variable", value: 50 });
+    updated[sIndex].variables.push({ label: "New Variable", value: 100, hasPressure: false });
     setScenarios(updated);
   };
 
@@ -38,10 +41,17 @@ export default function Folymarket() {
     setScenarios(updated);
   };
 
+  const togglePressure = (sIndex, vIndex) => {
+    const updated = [...scenarios];
+    updated[sIndex].variables[vIndex].hasPressure = !updated[sIndex].variables[vIndex].hasPressure;
+    setScenarios(updated);
+  };
+
   const generateOdds = () => {
     const generated = scenarios.map((s) => {
-      const pressure = s.variables.reduce((sum, v) => sum + parseInt(v.value || 0), 0);
-      const avg = Math.min(99, Math.max(1, Math.floor(pressure / (s.variables.length || 1))));
+      const pressureVars = s.variables.filter(v => v.hasPressure);
+      const pressure = pressureVars.reduce((sum, v) => sum + parseInt(v.value || 0), 0);
+      const avg = pressureVars.length > 0 ? Math.min(99, Math.max(1, Math.floor(pressure / pressureVars.length))) : 50;
       return {
         title: s.title,
         yes: avg,
@@ -56,7 +66,7 @@ export default function Folymarket() {
     <div className="min-h-screen bg-orange-50 text-gray-900 p-6 font-sans">
       <h1 className="text-4xl font-extrabold mb-4 text-orange-600 border-b-4 border-teal-400 pb-2">Folymarket™ Scenario Simulator</h1>
       <p className="text-md text-orange-800 mb-6 max-w-xl">
-        Simulate complex outcomes using dynamic variables. Each scenario calculates odds based on weighted pressure inputs.
+        Simulate complex outcomes using variables with optional pressure inputs. Activate sliders to factor influence into each result.
       </p>
 
       {scenarios.map((scenario, sIndex) => (
@@ -78,15 +88,27 @@ export default function Folymarket() {
                   onChange={(e) => updateVariable(sIndex, vIndex, "label", e.target.value)}
                   className="w-full mb-2 p-2 rounded border border-gray-400"
                 />
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={v.value}
-                  onChange={(e) => updateVariable(sIndex, vIndex, "value", e.target.value)}
-                  className="w-full accent-teal-500"
-                />
-                <div className="text-sm text-orange-700 mt-1">Pressure: {v.value}%</div>
+                <label className="flex items-center gap-2 text-sm mb-1">
+                  <input
+                    type="checkbox"
+                    checked={v.hasPressure}
+                    onChange={() => togglePressure(sIndex, vIndex)}
+                  />
+                  Include pressure slider
+                </label>
+                {v.hasPressure && (
+                  <>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={v.value}
+                      onChange={(e) => updateVariable(sIndex, vIndex, "value", e.target.value)}
+                      className="w-full accent-teal-500"
+                    />
+                    <div className="text-sm text-orange-700 mt-1">Pressure: {v.value}%</div>
+                  </>
+                )}
               </div>
             ))}
             <button
@@ -102,6 +124,7 @@ export default function Folymarket() {
       <div className="flex gap-4 mb-10">
         <button onClick={addScenario} className="bg-orange-600 hover:bg-orange-700 text-white px-5 py-3 rounded-xl text-lg">+ Add Scenario</button>
         <button onClick={generateOdds} className="bg-teal-600 hover:bg-teal-700 text-white px-5 py-3 rounded-xl text-lg">Generate Outcomes</button>
+        <button onClick={clearAll} className="bg-gray-500 hover:bg-gray-600 text-white px-5 py-3 rounded-xl text-lg">Clear All</button>
       </div>
 
       <div className="space-y-6">
