@@ -1,4 +1,4 @@
-// Folymarket – Scenario Engine v2.7: Split control buttons, color-coded pressure slider, and intuitive pressure input design
+// Folymarket – Scenario Engine v2.8: Button layout overhaul, pressure bar clarity, impact-disabled variables, undo function placeholder
 import React, { useState } from "react";
 
 export default function Folymarket() {
@@ -7,6 +7,7 @@ export default function Folymarket() {
     variables: []
   }]);
   const [results, setResults] = useState([]);
+  const [history, setHistory] = useState([]);
 
   const handleScenarioChange = (index, value) => {
     const updated = [...scenarios];
@@ -15,6 +16,7 @@ export default function Folymarket() {
   };
 
   const addScenario = () => {
+    saveHistory();
     setScenarios([
       ...scenarios,
       {
@@ -25,13 +27,14 @@ export default function Folymarket() {
   };
 
   const clearAll = () => {
+    saveHistory();
     setScenarios([{ title: "", variables: [] }]);
     setResults([]);
   };
 
   const addVariable = (sIndex) => {
     const updated = [...scenarios];
-    updated[sIndex].variables.push({ label: "New Variable", value: 70, hasPressure: true });
+    updated[sIndex].variables.push({ label: "New Variable", value: 70, hasPressure: true, impactful: true });
     setScenarios(updated);
   };
 
@@ -47,9 +50,26 @@ export default function Folymarket() {
     setScenarios(updated);
   };
 
+  const toggleImpactful = (sIndex, vIndex) => {
+    const updated = [...scenarios];
+    updated[sIndex].variables[vIndex].impactful = !updated[sIndex].variables[vIndex].impactful;
+    setScenarios(updated);
+  };
+
+  const saveHistory = () => {
+    setHistory([...history, JSON.stringify(scenarios)]);
+  };
+
+  const undoLast = () => {
+    if (history.length === 0) return;
+    const prev = history[history.length - 1];
+    setScenarios(JSON.parse(prev));
+    setHistory(history.slice(0, -1));
+  };
+
   const generateOdds = () => {
     const generated = scenarios.map((s) => {
-      const pressureVars = s.variables.filter(v => v.hasPressure);
+      const pressureVars = s.variables.filter(v => v.hasPressure && v.impactful);
       const pressure = pressureVars.reduce((sum, v) => sum + parseInt(v.value || 0), 0);
       const avg = pressureVars.length > 0 ? Math.min(99, Math.max(1, Math.floor(pressure / pressureVars.length))) : 50;
       return {
@@ -91,24 +111,38 @@ export default function Folymarket() {
                 <label className="flex items-center gap-2 text-sm mb-1">
                   <input
                     type="checkbox"
-                    checked={v.hasPressure}
-                    onChange={() => togglePressure(sIndex, vIndex)}
+                    checked={v.impactful}
+                    onChange={() => toggleImpactful(sIndex, vIndex)}
                   />
-                  Include pressure slider (optional)
+                  This variable impacts the outcome
                 </label>
-                {v.hasPressure && (
+                {v.impactful ? (
                   <>
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={v.value}
-                      onChange={(e) => updateVariable(sIndex, vIndex, "value", e.target.value)}
-                      className={`w-full accent-teal-500 ${v.value >= 66 ? 'bg-orange-300' : v.value <= 33 ? 'bg-teal-300' : 'bg-yellow-200'}`}
-                    />
-                    <div className="text-sm text-orange-700 mt-1">Pressure: {v.value}%</div>
-                    <p className="text-xs text-gray-500">Use the slider to increase or decrease this variable’s influence on the outcome. Left is cooler (lower pressure), right is hotter (higher pressure).</p>
+                    <label className="flex items-center gap-2 text-sm mb-1">
+                      <input
+                        type="checkbox"
+                        checked={v.hasPressure}
+                        onChange={() => togglePressure(sIndex, vIndex)}
+                      />
+                      Include pressure slider (optional)
+                    </label>
+                    {v.hasPressure && (
+                      <>
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={v.value}
+                          onChange={(e) => updateVariable(sIndex, vIndex, "value", e.target.value)}
+                          className={`w-full accent-teal-500 ${v.value >= 66 ? 'bg-orange-300' : v.value <= 33 ? 'bg-teal-300' : 'bg-yellow-200'}`}
+                        />
+                        <div className="text-sm text-orange-700 mt-1">Pressure: {v.value}%</div>
+                        <p className="text-xs text-gray-500">Left = cooler, right = hotter. Adjust pressure if this variable has influence strength.</p>
+                      </>
+                    )}
                   </>
+                ) : (
+                  <p className="text-sm italic text-gray-400">This variable currently has no direct impact on outcome.</p>
                 )}
               </div>
             ))}
@@ -122,12 +156,13 @@ export default function Folymarket() {
         </div>
       ))}
 
-      <div className="flex flex-wrap gap-4 mb-10">
-        <div className="flex gap-4">
+      <div className="flex flex-col gap-4 mb-10">
+        <div className="flex flex-wrap gap-4">
           <button onClick={addScenario} className="bg-orange-600 hover:bg-orange-700 text-white px-5 py-3 rounded-xl text-lg">+ Add Scenario</button>
           <button onClick={generateOdds} className="bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-xl text-lg">Generate Outcomes</button>
+          <button onClick={undoLast} className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl text-lg">Undo</button>
         </div>
-        <div className="mt-4">
+        <div>
           <button onClick={clearAll} className="bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-xl text-lg">Clear All</button>
         </div>
       </div>
