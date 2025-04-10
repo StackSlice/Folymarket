@@ -1,4 +1,4 @@
-// Folymarket – Scenario Engine v2.5 with optional pressure sliders, variable type selection, and Clear All functionality
+// Folymarket – Scenario Engine v2.6 Patch: Default pressure ON, slider helper text, and 0-pressure fallback logic
 import React, { useState } from "react";
 
 export default function Folymarket() {
@@ -31,7 +31,7 @@ export default function Folymarket() {
 
   const addVariable = (sIndex) => {
     const updated = [...scenarios];
-    updated[sIndex].variables.push({ label: "New Variable", value: 100, hasPressure: false });
+    updated[sIndex].variables.push({ label: "New Variable", value: 100, hasPressure: true });
     setScenarios(updated);
   };
 
@@ -94,7 +94,7 @@ export default function Folymarket() {
                     checked={v.hasPressure}
                     onChange={() => togglePressure(sIndex, vIndex)}
                   />
-                  Include pressure slider
+                  Include pressure slider (optional)
                 </label>
                 {v.hasPressure && (
                   <>
@@ -107,6 +107,7 @@ export default function Folymarket() {
                       className="w-full accent-teal-500"
                     />
                     <div className="text-sm text-orange-700 mt-1">Pressure: {v.value}%</div>
+                    <p className="text-xs text-gray-500">Use the slider to increase or decrease this variable’s influence on the outcome.</p>
                   </>
                 )}
               </div>
