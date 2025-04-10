@@ -4,14 +4,16 @@
 import React, { useState } from "react";
 
 export default function Folymarket() {
-  const [questions, setQuestions] = useState([{
-    text: "",
-    variables: [
-      { label: "Public pressure", weight: 10, active: false },
-      { label: "Legal deadline passed", weight: 15, active: false },
-      { label: "Media coverage", weight: 5, active: false }
-    ]
-  }]);
+  const [questions, setQuestions] = useState([
+    {
+      text: "",
+      variables: [
+        { label: "Public pressure", weight: 10, active: false },
+        { label: "Legal deadline passed", weight: 15, active: false },
+        { label: "Media coverage", weight: 5, active: false }
+      ]
+    }
+  ]);
 
   const [results, setResults] = useState([]);
 
