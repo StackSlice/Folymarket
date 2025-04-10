@@ -1,117 +1,115 @@
-// Folymarket - React App with Variable-Weighted Odds
-// Simulates Polymarket-style predictions with user-controlled variables
+// Folymarket – Upgraded Scenario Engine UI with dynamic variables, sliders, and improved styling
+// Theme: Orange + Teal, bold typography, scalable layout for strategic modeling
 
 import React, { useState } from "react";
 
 export default function Folymarket() {
-  const [questions, setQuestions] = useState([
-    {
-      text: "",
-      variables: [
-        { label: "Public pressure", weight: 10, active: false },
-        { label: "Legal deadline passed", weight: 15, active: false },
-        { label: "Media coverage", weight: 5, active: false }
-      ]
-    }
-  ]);
-
+  const [scenarios, setScenarios] = useState([{
+    title: "",
+    variables: []
+  }]);
   const [results, setResults] = useState([]);
 
-  const handleQuestionChange = (index, value) => {
-    const updated = [...questions];
-    updated[index].text = value;
-    setQuestions(updated);
+  const handleScenarioChange = (index, value) => {
+    const updated = [...scenarios];
+    updated[index].title = value;
+    setScenarios(updated);
   };
 
-  const toggleVariable = (qIndex, vIndex) => {
-    const updated = [...questions];
-    updated[qIndex].variables[vIndex].active = !updated[qIndex].variables[vIndex].active;
-    setQuestions(updated);
-  };
-
-  const addQuestion = () => {
-    setQuestions([
-      ...questions,
+  const addScenario = () => {
+    setScenarios([
+      ...scenarios,
       {
-        text: "",
-        variables: [
-          { label: "Public pressure", weight: 10, active: false },
-          { label: "Legal deadline passed", weight: 15, active: false },
-          { label: "Media coverage", weight: 5, active: false }
-        ]
+        title: "",
+        variables: []
       }
     ]);
   };
 
+  const addVariable = (sIndex) => {
+    const updated = [...scenarios];
+    updated[sIndex].variables.push({ label: "New Variable", value: 50 });
+    setScenarios(updated);
+  };
+
+  const updateVariable = (sIndex, vIndex, key, val) => {
+    const updated = [...scenarios];
+    updated[sIndex].variables[vIndex][key] = val;
+    setScenarios(updated);
+  };
+
   const generateOdds = () => {
-    const generated = questions.map((q) => {
-      const totalWeight = q.variables
-        .filter((v) => v.active)
-        .reduce((sum, v) => sum + v.weight, 0);
-      let yes = Math.min(99, Math.max(1, 50 + totalWeight));
-      let no = 100 - yes;
-      const rationale = generateRationale();
-      return { q: q.text, yes, no, rationale };
+    const generated = scenarios.map((s) => {
+      const pressure = s.variables.reduce((sum, v) => sum + parseInt(v.value || 0), 0);
+      const avg = Math.min(99, Math.max(1, Math.floor(pressure / (s.variables.length || 1))));
+      return {
+        title: s.title,
+        yes: avg,
+        no: 100 - avg,
+        pressure
+      };
     });
     setResults(generated);
   };
 
-  const generateRationale = () => {
-    const rationales = [
-      "Scenario inputs increase likelihood.",
-      "Weight of variables adjusted odds upward.",
-      "Neutral factors yield average outcome.",
-      "Key factors absent, odds remain low.",
-      "Real-world precedent supports result."
-    ];
-    return rationales[Math.floor(Math.random() * rationales.length)];
-  };
-
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-8">
-      <h1 className="text-3xl font-bold mb-6">Folymarket™ Prediction Simulator</h1>
-      <p className="mb-4 text-sm text-gray-400">
-        All predictions are simulated for strategic modeling. No financial value or wagering. Not affiliated with Polymarket.
+    <div className="min-h-screen bg-orange-50 text-gray-900 p-6 font-sans">
+      <h1 className="text-4xl font-extrabold mb-4 text-orange-600 border-b-4 border-teal-400 pb-2">Folymarket™ Scenario Simulator</h1>
+      <p className="text-md text-orange-800 mb-6 max-w-xl">
+        Simulate complex outcomes using dynamic variables. Each scenario calculates odds based on weighted pressure inputs.
       </p>
 
-      {questions.map((question, index) => (
-        <div key={index} className="mb-4 p-4 bg-gray-800 rounded">
+      {scenarios.map((scenario, sIndex) => (
+        <div key={sIndex} className="bg-white shadow-lg rounded-xl p-4 mb-6 border-2 border-teal-400">
           <input
-            value={question.text}
-            onChange={(e) => handleQuestionChange(index, e.target.value)}
-            placeholder={`Enter market question #${index + 1}`}
-            className="w-full mb-2 p-2 bg-gray-700 rounded border border-gray-600"
+            type="text"
+            placeholder={`Enter scenario #${sIndex + 1}`}
+            value={scenario.title}
+            onChange={(e) => handleScenarioChange(sIndex, e.target.value)}
+            className="w-full p-3 mb-4 rounded border-2 border-orange-300 focus:outline-none focus:ring-2 focus:ring-teal-500"
           />
 
-          <div className="space-y-1 text-sm">
-            {question.variables.map((v, vIndex) => (
-              <div key={vIndex}>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={v.active}
-                    onChange={() => toggleVariable(index, vIndex)}
-                    className="mr-2"
-                  />
-                  {v.label} (+{v.weight}%)
-                </label>
+          <div className="space-y-4">
+            {scenario.variables.map((v, vIndex) => (
+              <div key={vIndex} className="bg-orange-100 p-3 rounded border border-orange-300">
+                <input
+                  type="text"
+                  value={v.label}
+                  onChange={(e) => updateVariable(sIndex, vIndex, "label", e.target.value)}
+                  className="w-full mb-2 p-2 rounded border border-gray-400"
+                />
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={v.value}
+                  onChange={(e) => updateVariable(sIndex, vIndex, "value", e.target.value)}
+                  className="w-full accent-teal-500"
+                />
+                <div className="text-sm text-orange-700 mt-1">Pressure: {v.value}%</div>
               </div>
             ))}
+            <button
+              onClick={() => addVariable(sIndex)}
+              className="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded"
+            >
+              + Add Variable
+            </button>
           </div>
         </div>
       ))}
 
-      <div className="flex gap-2 mb-6">
-        <button onClick={addQuestion} className="bg-gray-700 px-4 py-2 rounded">+ Add Question</button>
-        <button onClick={generateOdds} className="bg-blue-600 px-4 py-2 rounded">Generate Odds</button>
+      <div className="flex gap-4 mb-10">
+        <button onClick={addScenario} className="bg-orange-600 hover:bg-orange-700 text-white px-5 py-3 rounded-xl text-lg">+ Add Scenario</button>
+        <button onClick={generateOdds} className="bg-teal-600 hover:bg-teal-700 text-white px-5 py-3 rounded-xl text-lg">Generate Outcomes</button>
       </div>
 
       <div className="space-y-6">
         {results.map((r, idx) => (
-          <div key={idx} className="bg-gray-800 p-4 rounded shadow">
-            <h2 className="text-xl font-semibold">{r.q}</h2>
-            <p className="mt-2 text-green-400">Yes: {r.yes}¢ / No: {r.no}¢</p>
-            <p className="text-sm text-gray-400 mt-1">{r.rationale}</p>
+          <div key={idx} className="bg-white border-t-4 border-orange-500 p-4 rounded-lg shadow-md">
+            <h2 className="text-2xl font-bold text-orange-700">{r.title}</h2>
+            <p className="mt-2 text-teal-600 font-semibold">Yes: {r.yes}¢ / No: {r.no}¢</p>
+            <p className="text-sm text-gray-500">Total Pressure: {r.pressure}%</p>
           </div>
         ))}
       </div>
