@@ -1,4 +1,4 @@
-// Folymarket – v3.0 UI Overhaul: Full styling pass with visual hierarchy, color-coded controls, and polished layout
+// Folymarket – v3.1 UI + UX Patch: Improved layout, per-variable deletion, input auto-clear, color tweaks, button spacing
 import React, { useState } from "react";
 
 export default function Folymarket() {
@@ -17,13 +17,7 @@ export default function Folymarket() {
 
   const addScenario = () => {
     saveHistory();
-    setScenarios([
-      ...scenarios,
-      {
-        title: "",
-        variables: []
-      }
-    ]);
+    setScenarios([...scenarios, { title: "", variables: [] }]);
   };
 
   const clearAll = () => {
@@ -34,7 +28,13 @@ export default function Folymarket() {
 
   const addVariable = (sIndex) => {
     const updated = [...scenarios];
-    updated[sIndex].variables.push({ label: "New Variable", value: 70, hasPressure: true, impactful: true });
+    updated[sIndex].variables.push({ label: "", value: 70, hasPressure: true, impactful: true });
+    setScenarios(updated);
+  };
+
+  const removeVariable = (sIndex, vIndex) => {
+    const updated = [...scenarios];
+    updated[sIndex].variables.splice(vIndex, 1);
     setScenarios(updated);
   };
 
@@ -103,12 +103,17 @@ export default function Folymarket() {
             <div className="space-y-6">
               {scenario.variables.map((v, vIndex) => (
                 <div key={vIndex} className="bg-orange-50 p-4 rounded border border-orange-300">
-                  <input
-                    type="text"
-                    value={v.label}
-                    onChange={(e) => updateVariable(sIndex, vIndex, "label", e.target.value)}
-                    className="w-full text-sm mb-2 p-2 rounded border border-gray-400"
-                  />
+                  <div className="flex justify-between items-center">
+                    <input
+                      type="text"
+                      value={v.label}
+                      placeholder="New variable description..."
+                      onChange={(e) => updateVariable(sIndex, vIndex, "label", e.target.value)}
+                      className="w-full text-sm mb-2 p-2 rounded border border-gray-400"
+                    />
+                    <button onClick={() => removeVariable(sIndex, vIndex)} className="ml-4 text-red-500 font-bold hover:text-red-700">✕</button>
+                  </div>
+
                   <label className="flex items-center gap-2 text-sm mb-1">
                     <input
                       type="checkbox"
@@ -117,6 +122,7 @@ export default function Folymarket() {
                     />
                     Variable affects outcome
                   </label>
+
                   {v.impactful ? (
                     <>
                       <label className="flex items-center gap-2 text-sm mb-1">
