@@ -1,4 +1,4 @@
-// Folymarket – v3.1 UI + UX Patch: Improved layout, per-variable deletion, input auto-clear, color tweaks, button spacing
+// Folymarket – v3.2 Patch: Pressure off by default, add-pressure button toggle, sliders start at 0%, correct shift calculation
 import React, { useState } from "react";
 
 export default function Folymarket() {
@@ -28,7 +28,7 @@ export default function Folymarket() {
 
   const addVariable = (sIndex) => {
     const updated = [...scenarios];
-    updated[sIndex].variables.push({ label: "", value: 70, hasPressure: true, impactful: true });
+    updated[sIndex].variables.push({ label: "", value: 0, hasPressure: false, impactful: true });
     setScenarios(updated);
   };
 
@@ -47,6 +47,9 @@ export default function Folymarket() {
   const togglePressure = (sIndex, vIndex) => {
     const updated = [...scenarios];
     updated[sIndex].variables[vIndex].hasPressure = !updated[sIndex].variables[vIndex].hasPressure;
+    if (updated[sIndex].variables[vIndex].hasPressure && updated[sIndex].variables[vIndex].value === 0) {
+      updated[sIndex].variables[vIndex].value = 0;
+    }
     setScenarios(updated);
   };
 
@@ -71,7 +74,7 @@ export default function Folymarket() {
     const generated = scenarios.map((s) => {
       const pressureVars = s.variables.filter(v => v.hasPressure && v.impactful);
       const pressure = pressureVars.reduce((sum, v) => sum + parseInt(v.value || 0), 0);
-      const avg = pressureVars.length > 0 ? Math.min(99, Math.max(1, Math.floor(pressure / pressureVars.length))) : 50;
+      const avg = pressureVars.length > 0 ? Math.min(99, Math.max(1, Math.floor(50 + (pressure / (pressureVars.length * 2)) - 25))) : 50;
       return {
         title: s.title,
         yes: avg,
@@ -123,16 +126,14 @@ export default function Folymarket() {
                     Variable affects outcome
                   </label>
 
-                  {v.impactful ? (
+                  {v.impactful && (
                     <>
-                      <label className="flex items-center gap-2 text-sm mb-1">
-                        <input
-                          type="checkbox"
-                          checked={v.hasPressure}
-                          onChange={() => togglePressure(sIndex, vIndex)}
-                        />
-                        Show pressure slider
-                      </label>
+                      <button
+                        onClick={() => togglePressure(sIndex, vIndex)}
+                        className="bg-gray-200 hover:bg-gray-300 text-sm text-gray-800 px-3 py-1 rounded shadow mb-2"
+                      >
+                        {v.hasPressure ? "Remove Pressure" : "Add Pressure"}
+                      </button>
                       {v.hasPressure && (
                         <>
                           <input
@@ -147,8 +148,6 @@ export default function Folymarket() {
                         </>
                       )}
                     </>
-                  ) : (
-                    <p className="text-sm italic text-gray-400">This variable is informational only.</p>
                   )}
                 </div>
               ))}
